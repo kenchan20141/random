@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>令人絕望的中文SBA抽籤</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-image: url('https://i.ibb.co/WWvw5TqM/10.png');
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Noto Serif TC', 'cwTeXHei', 'cwTeXFangSong', 'cwTeXKai', 'cwTeXMing', 'PingFang TC', 'Microsoft JhengHei', serif;
+        }
+        .main-container {
+            background-color: rgba(0, 31, 63, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 1000px;
+            color: #fff;
+            text-align: center;
+        }
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            position: relative;
+            display: inline-block;
+            animation: float 2s infinite;
+        }
+        @keyframes float {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-2px); }
+            100% { transform: translateY(0); }
+        }
+        form {
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+        }
+        input, button, select {
+            padding: 10px;
+            margin: 5px;
+            font-size: 1em;
+            border: none;
+            border-radius: 5px;
+            background-color: #003366;
+            color: #fff;
+        }
+        select#mode {
+            font-size: 1.2em;
+        }
+        input[type="number"], input[type="text"] {
+            width: 80px;
+        }
+        button {
+            background-color: #28a745;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .settings-button {
+            background-color: #007bff;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .settings-button i {
+            margin-right: 5px;
+        }
+        canvas {
+            border: 1px solid #fff;
+            background-color: #003366;
+            border-radius: 5px;
+            margin: 20px auto;
+        }
+        .number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #A52A2A; /* 稍亮的深紅色 */
+        }
+        .icon-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            margin: 5px;
+            color: #fff;
+            font-size: 1.5em;
+        }
+        .progress-bar {
+            width: 100%;
+            background-color: #004080;
+            height: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .progress {
+            width: 0%;
+            height: 100%;
+            background-color: #ffcc00;
+            border-radius: 5px;
+        }
+        .history {
+            margin-top: 20px;
+            background-color: rgba(51, 51, 51, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .history h2 {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+        .history table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: auto;
+        }
+        .history th, .history td {
+            padding: 5px;
+            border: 1px solid #fff;
+            text-align: center;
+        }
+        .history td {
+            white-space: normal;
+            word-wrap: break-word;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 60%;
+            color: #000;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .save-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #28a745;
+            font-size: 1.5em;
+        }
+        .dark-gray-button {
+            background-color: #555555;
+            color: #fff;
+            padding: 5px;
+            font-size: 0.8em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <h1>令人絕望的中文SBA抽籤</h1>
+        <form id="drawForm">
+            <div style="display: flex; align-items: center; justify-content: center; flex-wrap: wrap;">
+                <label for="mode" style="margin-right: 10px;">抽取模式：</label>
+                <select id="mode" name="mode">
+                    <option value="number">🔢</option>
+                    <option value="name">👤</option>
+                </select>
+                <div id="numberOptions" style="display: flex; align-items: center; margin-left: 10px;">
+                    <label for="min">最小值：</label>
+                    <input type="number" id="min" name="min" value="1">
+                    <label for="max">最大值：</label>
+                    <input type="number" id="max" name="max" value="35">
+                    <label for="excludeNumbers" style="margin-left: 10px;">排除數字（逗號分隔）：</label>
+                    <input type="text" id="excludeNumbers" name="excludeNumbers">
+                </div>
+                <div id="nameOptions" style="display: none; margin-left: 10px;">
+                    <button type="button" class="dark-gray-button" onclick="openNameModal()"><i class="fas fa-list"></i></button>
+                    <button type="button" class="dark-gray-button" onclick="openExcludeModal()"><i class="fas fa-ban"></i></button>
+                </div>
+                <label for="count" style="margin-left: 10px;">抽取數量：</label>
+                <input type="number" id="count" name="count" value="3">
+                <label for="unique" style="margin-left: 10px;">不重複：</label>
+                <input type="checkbox" id="unique" name="unique">
+            </div>
+            <div id="actionButtons" style="display: flex; justify-content: center; margin-top: 10px;">
+                <button type="button" onclick="startDraw()">開始抽取</button>
+                <button type="button" class="icon-button" onclick="saveState()" title="儲存狀態">
+                    <i class="fas fa-save"></i>
+                </button>
+                <button type="button" class="icon-button" onclick="clearState()" title="清空狀態">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </form>
+        <canvas id="drawCanvas" width="800" height="200"></canvas>
+        <div class="progress-bar">
+            <div class="progress" id="progress"></div>
+        </div>
+        <div class="history" id="history">
+            <h2>抽籤歷史</h2>
+            <table id="historyTable">
+                <thead>
+                    <tr>
+                        <th>回合</th>
+                        <th>抽取結果</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+    <audio id="tickSound" src="tick.mp3"></audio>
+    <div id="nameModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeNameModal()">×</span>
+            <h2>設定姓名列表</h2>
+            <textarea id="nameInput" rows="10" cols="50" placeholder="輸入姓名，每行一個或用逗號分隔"></textarea>
+            <button class="save-button" onclick="saveNames()"><i class="fas fa-check"></i></button>
+        </div>
+    </div>
+    <div id="excludeModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeExcludeModal()">×</span>
+            <h2>設定排除項目</h2>
+            <textarea id="excludeInput" rows="10" cols="50" placeholder="輸入排除項目，每行一個或用逗號分隔"></textarea>
+            <button class="save-button" onclick="saveExclude()"><i class="fas fa-check"></i></button>
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('drawCanvas');
+        const ctx = canvas.getContext('2d');
+        const progress = document.getElementById('progress');
+        const tickSound = document.getElementById('tickSound');
+        const historyTable = document.getElementById('historyTable').querySelector('tbody');
+        let numbers = [];
+        let finalNumbers = [];
+        let animationId;
+        let startTime;
+        let min, max, count, unique, exclude = [], mode, names = [], excludeNumbers = '';
+        let drawnNumbers = JSON.parse(localStorage.getItem('drawnNumbers')) || [];
+        let history = JSON.parse(localStorage.getItem('history')) || [];
+        let round = history.length + 1;
+
+        // 從 localStorage 載入姓名列表和排除項目
+        names = JSON.parse(localStorage.getItem('names')) || [];
+        exclude = JSON.parse(localStorage.getItem('exclude')) || [];
+
+        document.getElementById('mode').addEventListener('change', function() {
+            const mode = this.value;
+            if (mode === 'number') {
+                document.getElementById('numberOptions').style.display = 'flex';
+                document.getElementById('nameOptions').style.display = 'none';
+                document.getElementById('actionButtons').style.display = 'flex';
+            } else {
+                document.getElementById('numberOptions').style.display = 'none';
+                document.getElementById('nameOptions').style.display = 'block';
+                document.getElementById('actionButtons').style.display = 'flex';
+            }
+        });
+
+        function openNameModal() {
+            document.getElementById('nameModal').style.display = 'block';
+            document.getElementById('nameInput').value = names.join('\n');
+        }
+
+        function closeNameModal() {
+            document.getElementById('nameModal').style.display = 'none';
+        }
+
+        function saveNames() {
+            const input = document.getElementById('nameInput').value;
+            names = input.split(/[\n,]+/).map(name => name.trim()).filter(name => name !== '');
+            closeNameModal();
+        }
+
+        function openExcludeModal() {
+            document.getElementById('excludeModal').style.display = 'block';
+            document.getElementById('excludeInput').value = exclude.join('\n');
+        }
+
+        function closeExcludeModal() {
+            document.getElementById('excludeModal').style.display = 'none';
+        }
+
+        function saveExclude() {
+            const input = document.getElementById('excludeInput').value;
+            exclude = input.split(/[\n,]+/).map(item => item.trim()).filter(item => item !== '');
+            closeExcludeModal();
+        }
+
+        function startDraw() {
+            mode = document.getElementById('mode').value;
+            count = parseInt(document.getElementById('count').value);
+            unique = document.getElementById('unique').checked;
+            if (mode === 'number') {
+                min = parseInt(document.getElementById('min').value);
+                max = parseInt(document.getElementById('max').value);
+                excludeNumbers = document.getElementById('excludeNumbers').value;
+                exclude = excludeNumbers.split(',').map(item => item.trim()).filter(item => item !== '');
+                if (min >= max || count <= 0) {
+                    alert('請輸入有效的範圍和數量');
+                    return;
+                }
+            } else {
+                if (names.length === 0) {
+                    alert('請先設定姓名列表');
+                    return;
+                }
+            }
+            finalNumbers = generateItems();
+            if (finalNumbers.length === 0) {
+                alert('所有選項已經抽取完畢，無法進行更多抽取。');
+                return;
+            }
+            numbers = Array(count).fill(mode === 'number' ? 0 : '');
+            startTime = Date.now();
+            if (animationId) cancelAnimationFrame(animationId);
+            animate();
+        }
+
+        function generateItems() {
+            let availableItems = [];
+            let allDrawnItems = new Set();
+            history.forEach(item => {
+                item.numbers.forEach(num => allDrawnItems.add(num));
+            });
+            if (mode === 'number') {
+                for (let i = min; i <= max; i++) {
+                    if (!allDrawnItems.has(i) && !exclude.includes(i.toString())) {
+                        availableItems.push(i);
+                    }
+                }
+            } else {
+                availableItems = names.filter(name => !allDrawnItems.has(name) && !exclude.includes(name));
+            }
+            if (unique && availableItems.length < count) {
+                return [];
+            }
+            let selectedItems = [];
+            if (unique) {
+                while (selectedItems.length < count && availableItems.length > 0) {
+                    let index = Math.floor(Math.random() * availableItems.length);
+                    selectedItems.push(availableItems[index]);
+                    availableItems.splice(index, 1);
+                }
+            } else {
+                for (let i = 0; i < count; i++) {
+                    let index = Math.floor(Math.random() * availableItems.length);
+                    selectedItems.push(availableItems[index]);
+                }
+            }
+            return selectedItems;
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const elapsed = (Date.now() - startTime) / 1000; // seconds
+            const duration = 5; // total animation time in seconds
+            progress.style.width = (elapsed / duration * 100) + '%';
+            if (elapsed >= duration) {
+                numbers = finalNumbers;
+                drawItems();
+                addToHistory();
+                round++;
+                return;
+            }
+            const phase = elapsed / duration;
+            const frequency = 5 - 4 * phase; // from 5 to 1
+            if (Math.random() < 0.05 * frequency) {
+                for (let i = 0; i < numbers.length; i++) {
+                    if (mode === 'number') {
+                        numbers[i] = Math.floor(Math.random() * (max - min + 1)) + min;
+                    } else {
+                        numbers[i] = names[Math.floor(Math.random() * names.length)];
+                    }
+                }
+                tickSound.play();
+            }
+            drawItems();
+            animationId = requestAnimationFrame(animate);
+        }
+
+        function drawItems() {
+            ctx.font = 'bold 48px Arial';
+            ctx.fillStyle = '#A52A2A'; /* 稍亮的深紅色 */
+            ctx.textAlign = 'center';
+            const spacing = canvas.width / numbers.length;
+            numbers.forEach((item, index) => {
+                const x = index * spacing + spacing / 2;
+                const y = canvas.height / 2;
+                ctx.fillText(item, x, y);
+            });
+        }
+
+        function addToHistory() {
+            const tr = document.createElement('tr');
+            const tdRound = document.createElement('td');
+            tdRound.textContent = round;
+            const tdNumbers = document.createElement('td');
+            tdNumbers.textContent = finalNumbers.join(', ');
+            tr.appendChild(tdRound);
+            tr.appendChild(tdNumbers);
+            historyTable.appendChild(tr);
+            history.push({ round: round, numbers: finalNumbers });
+            localStorage.setItem('history', JSON.stringify(history));
+        }
+
+        function saveState() {
+            drawnNumbers = drawnNumbers.concat(finalNumbers);
+            localStorage.setItem('drawnNumbers', JSON.stringify(drawnNumbers));
+            localStorage.setItem('history', JSON.stringify(history));
+            localStorage.setItem('names', JSON.stringify(names));
+            localStorage.setItem('exclude', JSON.stringify(exclude));
+            localStorage.setItem('count', document.getElementById('count').value);
+            localStorage.setItem('unique', document.getElementById('unique').checked);
+            localStorage.setItem('mode', document.getElementById('mode').value);
+            localStorage.setItem('min', document.getElementById('min').value);
+            localStorage.setItem('max', document.getElementById('max').value);
+            localStorage.setItem('excludeNumbers', document.getElementById('excludeNumbers').value);
+            alert('狀態已儲存');
+        }
+
+        function clearState() {
+            drawnNumbers = [];
+            history = [];
+            names = [];
+            exclude = [];
+            localStorage.removeItem('drawnNumbers');
+            localStorage.removeItem('history');
+            localStorage.removeItem('names');
+            localStorage.removeItem('exclude');
+            localStorage.removeItem('count');
+            localStorage.removeItem('unique');
+            localStorage.removeItem('mode');
+            localStorage.removeItem('min');
+            localStorage.removeItem('max');
+            localStorage.removeItem('excludeNumbers');
+            historyTable.innerHTML = '';
+            round = 1;
+            alert('狀態已清空');
+        }
+
+        window.onload = function() {
+            history.forEach(item => {
+                const tr = document.createElement('tr');
+                const tdRound = document.createElement('td');
+                tdRound.textContent = item.round;
+                const tdNumbers = document.createElement('td');
+                tdNumbers.textContent = item.numbers.join(', ');
+                tr.appendChild(tdRound);
+                tr.appendChild(tdNumbers);
+                historyTable.appendChild(tr);
+            });
+            round = history.length + 1;
+            // 載入姓名列表和排除項目
+            names = JSON.parse(localStorage.getItem('names')) || [];
+            exclude = JSON.parse(localStorage.getItem('exclude')) || [];
+            // 載入其他狀態
+            const savedCount = localStorage.getItem('count');
+            if (savedCount) document.getElementById('count').value = savedCount;
+            const savedUnique = localStorage.getItem('unique');
+            if (savedUnique) document.getElementById('unique').checked = JSON.parse(savedUnique);
+            const savedMode = localStorage.getItem('mode');
+            if (savedMode) {
+                document.getElementById('mode').value = savedMode;
+                if (savedMode === 'number') {
+                    document.getElementById('numberOptions').style.display = 'flex';
+                    document.getElementById('nameOptions').style.display = 'none';
+                } else {
+                    document.getElementById('numberOptions').style.display = 'none';
+                    document.getElementById('nameOptions').style.display = 'block';
+                }
+            }
+            const savedMin = localStorage.getItem('min');
+            if (savedMin) document.getElementById('min').value = savedMin;
+            const savedMax = localStorage.getItem('max');
+            if (savedMax) document.getElementById('max').value = savedMax;
+            const savedExcludeNumbers = localStorage.getItem('excludeNumbers');
+            if (savedExcludeNumbers) document.getElementById('excludeNumbers').value = savedExcludeNumbers;
+        };
+    </script>
+</body>
+</html>
