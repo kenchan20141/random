@@ -92,11 +92,13 @@
             background-color: #003366;
             border-radius: 5px;
             margin: 20px auto;
+            width: 100%;
+            height: auto;
         }
         .number {
             font-size: 2em;
             font-weight: bold;
-            color: #A52A2A; /* 稍亮的深紅色 */
+            color: #A52A2A;
         }
         .icon-button {
             background: none;
@@ -191,6 +193,27 @@
             cursor: pointer;
             margin: 5px;
         }
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.5em;
+            }
+            input, button, select {
+                font-size: 0.9em;
+                padding: 8px;
+            }
+            .main-container {
+                padding: 10px;
+            }
+            .modal-content {
+                width: 90%;
+            }
+            .history table {
+                font-size: 0.8em;
+            }
+            .history th, .history td {
+                padding: 3px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -198,7 +221,7 @@
         <h1>令人絕望的中文SBA抽籤</h1>
         <form id="drawForm">
             <div style="display: flex; align-items: center; justify-content: center; flex-wrap: wrap;">
-                <label for="mode" style="margin-right: 10px;">抽取模式：</label>
+                <label for="mode" style="margin-right: 10px;">模式：</label>
                 <select id="mode" name="mode">
                     <option value="number">🔢</option>
                     <option value="name">👤</option>
@@ -208,20 +231,20 @@
                     <input type="number" id="min" name="min" value="1">
                     <label for="max">最大值：</label>
                     <input type="number" id="max" name="max" value="35">
-                    <label for="excludeNumbers" style="margin-left: 10px;">排除數字（逗號分隔）：</label>
+                    <label for="excludeNumbers" style="margin-left: 10px;">排除數字：</label>
                     <input type="text" id="excludeNumbers" name="excludeNumbers">
                 </div>
                 <div id="nameOptions" style="display: none; margin-left: 10px;">
                     <button type="button" class="dark-gray-button" onclick="openNameModal()"><i class="fas fa-list"></i></button>
                     <button type="button" class="dark-gray-button" onclick="openExcludeModal()"><i class="fas fa-ban"></i></button>
                 </div>
-                <label for="count" style="margin-left: 10px;">抽取數量：</label>
+                <label for="count" style="margin-left: 10px;">數量：</label>
                 <input type="number" id="count" name="count" value="3">
                 <label for="unique" style="margin-left: 10px;">不重複：</label>
                 <input type="checkbox" id="unique" name="unique">
             </div>
             <div id="actionButtons" style="display: flex; justify-content: center; margin-top: 10px;">
-                <button type="button" onclick="startDraw()">開始抽取</button>
+                <button type="button" onclick="startDraw()">開始抽籤</button>
                 <button type="button" class="icon-button" onclick="saveState()" title="儲存狀態">
                     <i class="fas fa-save"></i>
                 </button>
@@ -240,7 +263,7 @@
                 <thead>
                     <tr>
                         <th>回合</th>
-                        <th>抽取結果</th>
+                        <th>結果</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -279,7 +302,6 @@
         let history = JSON.parse(localStorage.getItem('history')) || [];
         let round = history.length + 1;
 
-        // 從 localStorage 載入姓名列表和排除項目
         names = JSON.parse(localStorage.getItem('names')) || [];
         exclude = JSON.parse(localStorage.getItem('exclude')) || [];
 
@@ -392,8 +414,8 @@
 
         function animate() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const elapsed = (Date.now() - startTime) / 1000; // seconds
-            const duration = 5; // total animation time in seconds
+            const elapsed = (Date.now() - startTime) / 1000;
+            const duration = 5;
             progress.style.width = (elapsed / duration * 100) + '%';
             if (elapsed >= duration) {
                 numbers = finalNumbers;
@@ -403,7 +425,7 @@
                 return;
             }
             const phase = elapsed / duration;
-            const frequency = 5 - 4 * phase; // from 5 to 1
+            const frequency = 5 - 4 * phase;
             if (Math.random() < 0.05 * frequency) {
                 for (let i = 0; i < numbers.length; i++) {
                     if (mode === 'number') {
@@ -419,8 +441,9 @@
         }
 
         function drawItems() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.font = 'bold 48px Arial';
-            ctx.fillStyle = '#A52A2A'; /* 稍亮的深紅色 */
+            ctx.fillStyle = '#A52A2A';
             ctx.textAlign = 'center';
             const spacing = canvas.width / numbers.length;
             numbers.forEach((item, index) => {
@@ -478,7 +501,16 @@
             alert('狀態已清空');
         }
 
-        window.onload = function() {
+        function resizeCanvas() {
+            const canvas = document.getElementById('drawCanvas');
+            const container = document.querySelector('.main-container');
+            canvas.width = container.clientWidth - 40;
+            canvas.height = 200;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('load', function() {
+            resizeCanvas();
             history.forEach(item => {
                 const tr = document.createElement('tr');
                 const tdRound = document.createElement('td');
@@ -490,10 +522,8 @@
                 historyTable.appendChild(tr);
             });
             round = history.length + 1;
-            // 載入姓名列表和排除項目
             names = JSON.parse(localStorage.getItem('names')) || [];
             exclude = JSON.parse(localStorage.getItem('exclude')) || [];
-            // 載入其他狀態
             const savedCount = localStorage.getItem('count');
             if (savedCount) document.getElementById('count').value = savedCount;
             const savedUnique = localStorage.getItem('unique');
@@ -515,7 +545,7 @@
             if (savedMax) document.getElementById('max').value = savedMax;
             const savedExcludeNumbers = localStorage.getItem('excludeNumbers');
             if (savedExcludeNumbers) document.getElementById('excludeNumbers').value = savedExcludeNumbers;
-        };
+        });
     </script>
 </body>
 </html>
