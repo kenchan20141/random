@@ -193,6 +193,12 @@
             cursor: pointer;
             margin: 5px;
         }
+        #numberOptions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-left: 10px;
+        }
         @media (max-width: 600px) {
             h1 {
                 font-size: 1.5em;
@@ -226,7 +232,7 @@
                     <option value="number">🔢</option>
                     <option value="name">👤</option>
                 </select>
-                <div id="numberOptions" style="display: flex; align-items: center; margin-left: 10px;">
+                <div id="numberOptions" style="display: flex; flex-wrap: wrap; align-items: center; margin-left: 10px;">
                     <label for="min">最小值：</label>
                     <input type="number" id="min" name="min" value="1">
                     <label for="max">最大值：</label>
