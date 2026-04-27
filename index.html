@@ -48,6 +48,7 @@
         .copyright-footer p {
             margin: 0;
             font-size: 14px;
+            color: #333;
         }
 
         @media (max-width: 600px) {
@@ -336,11 +337,9 @@
             if (mode === 'number') {
                 document.getElementById('numberOptions').style.display = 'flex';
                 document.getElementById('nameOptions').style.display = 'none';
-                document.getElementById('actionButtons').style.display = 'flex';
             } else {
                 document.getElementById('numberOptions').style.display = 'none';
                 document.getElementById('nameOptions').style.display = 'block';
-                document.getElementById('actionButtons').style.display = 'flex';
             }
         });
 
@@ -378,6 +377,7 @@
             mode = document.getElementById('mode').value;
             count = parseInt(document.getElementById('count').value);
             unique = document.getElementById('unique').checked;
+            
             if (mode === 'number') {
                 min = parseInt(document.getElementById('min').value);
                 max = parseInt(document.getElementById('max').value);
@@ -393,11 +393,14 @@
                     return;
                 }
             }
+            
             finalNumbers = generateItems();
+            
             if (finalNumbers.length === 0) {
-                alert('所有選項已經抽取完畢，無法進行更多抽取。');
+                alert('可用選項不足或所有選項已經抽取完畢，無法進行更多抽取。');
                 return;
             }
+            
             numbers = Array(count).fill(mode === 'number' ? 0 : '');
             startTime = Date.now();
             if (animationId) cancelAnimationFrame(animationId);
@@ -407,29 +410,44 @@
         function generateItems() {
             let availableItems = [];
             let allDrawnItems = new Set();
-            history.forEach(item => {
-                item.numbers.forEach(num => allDrawnItems.add(num));
-            });
+            
+            // 只有在勾選「不重複」時，才將歷史記錄加入已抽取的集合中
+            if (unique) {
+                history.forEach(item => {
+                    item.numbers.forEach(num => allDrawnItems.add(num));
+                });
+            }
+
             if (mode === 'number') {
                 for (let i = min; i <= max; i++) {
-                    if (!allDrawnItems.has(i) && !exclude.includes(i.toString())) {
+                    if ((!unique || !allDrawnItems.has(i)) && !exclude.includes(i.toString())) {
                         availableItems.push(i);
                     }
                 }
             } else {
-                availableItems = names.filter(name => !allDrawnItems.has(name) && !exclude.includes(name));
+                availableItems = names.filter(name => (!unique || !allDrawnItems.has(name)) && !exclude.includes(name));
             }
+
+            // 防呆：如果沒有任何可用項目，直接回傳空陣列避免 UNDEFINED
+            if (availableItems.length === 0) {
+                return [];
+            }
+
+            // 如果要求不重複，但可用選項少於要抽取的數量
             if (unique && availableItems.length < count) {
                 return [];
             }
+
             let selectedItems = [];
             if (unique) {
+                // 不重複抽取：抽完從候選名單中移除
                 while (selectedItems.length < count && availableItems.length > 0) {
                     let index = Math.floor(Math.random() * availableItems.length);
                     selectedItems.push(availableItems[index]);
                     availableItems.splice(index, 1);
                 }
             } else {
+                // 允許重複抽取：可以直接隨機抽取
                 for (let i = 0; i < count; i++) {
                     let index = Math.floor(Math.random() * availableItems.length);
                     selectedItems.push(availableItems[index]);
@@ -474,7 +492,7 @@
             const spacing = canvas.width / numbers.length;
             numbers.forEach((item, index) => {
                 const x = index * spacing + spacing / 2;
-                const y = canvas.height / 2;
+                const y = canvas.height / 2 + 16;
                 ctx.fillText(item, x, y);
             });
         }
